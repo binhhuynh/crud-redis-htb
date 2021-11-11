@@ -2,6 +2,7 @@ package iuh.htb.crudredishtb.repository;
 
 import iuh.htb.crudredishtb.entity.Employee;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -9,32 +10,48 @@ import java.util.List;
 
 @Repository
 public class EmployeeRepository {
+    private static final String KEY = "employees";
 
-    private HashOperations hashOperations;
+    private HashOperations hashOps;
+    private ListOperations<String, Employee> listOps;
     private RedisTemplate redisTemplate;
 
     public EmployeeRepository(RedisTemplate redisTemplate) {
-        this.hashOperations = redisTemplate.opsForHash();
+        this.hashOps = redisTemplate.opsForHash();
+        this.listOps = redisTemplate.opsForList();
         this.redisTemplate = redisTemplate;
     }
 
     public void saveEmployee(Employee employee) {
-        hashOperations.put("EMPLOYEE", employee.getId(), employee);
+//        hashOps.put("EMPLOYEE", employee.getId(), employee);
+        listOps.leftPush(KEY, employee);
     }
 
     public List<Employee> findAll() {
-        return hashOperations.values("EMPLOYEE");
+        return hashOps.values(KEY);
     }
 
     public Employee findById(long id) {
-        return (Employee) hashOperations.get("EMPLOYEE", id);
+        return (Employee) hashOps.get("EMPLOYEE", id);
     }
 
     public void update(Employee employee) {
         saveEmployee(employee);
     }
 
+    public Employee getEmployeeAtIndex(Long index) {
+        return listOps.index(KEY, index);
+    }
+
     public void delete(long id) {
-        hashOperations.delete("EMPLOYEE", id);
+        hashOps.delete("EMPLOYEE", id);
+    }
+
+    public void deleteInList(Employee employee) {
+        listOps.remove(KEY, 1, employee);
+    }
+
+    public long getNumberOfEmployees() {
+        return listOps.size(KEY);
     }
 }

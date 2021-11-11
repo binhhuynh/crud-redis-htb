@@ -39,4 +39,21 @@ public class EmployeeController {
     public void delete(@PathVariable("id") long id) {
         employeeRepository.delete(id);
     }
+
+    // LIST
+
+    @GetMapping("/list/{index}")
+    public Employee findByIndex(@PathVariable("index") long index) {
+        return employeeRepository.getEmployeeAtIndex(index);
+    }
+
+    @DeleteMapping("/list")
+    public void delete(@RequestBody Employee employee) {
+        employeeRepository.deleteInList(employee);
+    }
+
+    @GetMapping("/list/number")
+    public long getNumberOfEmployees() {
+        return employeeRepository.getNumberOfEmployees();
+    }
 }
